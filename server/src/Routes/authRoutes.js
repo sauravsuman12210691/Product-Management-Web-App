@@ -65,7 +65,7 @@ router.post("/login", async (req, res) => {
     const awthToken = jwt.sign(data, jwt_SECRT);
     return res.send({ authentication: true, token: awthToken });
   } catch (err) {
-    res.status(500).json({ error: "Some error occurs", err });
+    return res.status(500).json({ error: "Some error occurs", err });
   }
 });
 
@@ -76,7 +76,7 @@ router.get("/dashboard", getuser, async (req, res) => {
     let userdetails = await user.findById(userId).select("-password");
     res.send(userdetails);
   } catch (err) {
-    res.status(500).json({ error: "Some error occurs", err });
+    return res.status(500).json({ error: "Some error occurs", err });
   }
 });
 
