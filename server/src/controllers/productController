@@ -1,0 +1,103 @@
+const Product = require("../models/productModel");
+
+// Create a new product
+exports.createProduct = async (req, res) => {
+  try {
+    const { name, description, category, price, rating } = req.body;
+
+    // Create a new product
+    const product = new Product({
+      name,
+      description,
+      category,
+      price,
+      rating,
+      user: req.user.id, // referring user id
+    });
+
+    await product.save();
+    res.status(201).json({ success: true, message: "Product created successfully!", product });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Something went wrong!", error: error.message });
+  }
+};
+
+// Get all products
+exports.getProducts = async (req, res) => {
+    try {
+      let { category, minPrice, maxPrice, minRating, maxRating, search } = req.query;
+  
+      // Building the filter object dynamically
+      let filter = {};
+  
+      if (category) {
+        filter.category = category;
+      }
+      if (minPrice || maxPrice) {
+        filter.price = {};
+        if (minPrice) filter.price.$gte = minPrice;
+        if (maxPrice) filter.price.$lte = maxPrice;
+      }
+      if (minRating || maxRating) {
+        filter.rating = {};
+        if (minRating) filter.rating.$gte = minRating;
+        if (maxRating) filter.rating.$lte = maxRating;
+      }
+      if (search) {
+        filter.$or = [
+          { name: { $regex: search, $options: "i" } }, // Case-insensitive search for name
+          { description: { $regex: search, $options: "i" } } // Case-insensitive search for description
+        ];
+      }
+  
+      const products = await Product.find(filter);
+      res.status(200).json({ success: true, message: "Products fetched successfully!", products });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Failed to fetch products!", error: error.message });
+    }
+  };
+  
+
+// Update a product
+exports.updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found!" });
+    }
+
+    // Ensure only the owner can update the product
+    if (product.user.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Unauthorized: You can only update your own products!" });
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json({ success: true, message: "Product updated successfully!", updatedProduct });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to update product!", error: error.message });
+  }
+};
+
+
+
+// Delete a product
+exports.deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found!" });
+    }
+
+    // Ensure only the owner can delete the product
+    if (product.user.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Unauthorized: You can only delete your own products!" });
+    }
+
+    await Product.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: "Product deleted successfully!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to delete product!", error: error.message });
+  }
+};
