@@ -18,12 +18,12 @@ router.post("/register", async (req, res) => {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-      res.send("All fields are required");
+      return res.status(400).json({ error: "All fields are required" }); // Added return
     }
 
     const existingUser = await user.findOne({ email });
     if (existingUser) {
-      res.send("Email already in use");
+      return res.status(400).json({ error: "Email already in use" }); // Added return
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -36,13 +36,12 @@ router.post("/register", async (req, res) => {
 
     await newUser.save();
 
-    res.send({
-      success:true
-    });
+    res.status(201).json({ success: true, message: "User registered successfully" });
   } catch (err) {
-    res.status(500).json({ error: "Some error occurs", err });
+    res.status(500).json({ error: "Some error occurred", details: err.message });
   }
 });
+
 // http://localhost:3000/api/auth/login
 router.post("/login", async (req, res) => {
   try {
