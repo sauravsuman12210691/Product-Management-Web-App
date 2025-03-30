@@ -36,7 +36,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     dispatch(fetchProducts({ category: searchCategory, minPrice }));
-  }, [dispatch, searchCategory, minPrice]);
+  }, [dispatch, searchCategory, minPrice]); // Added editingProductId
+  
 
   const handleInputChange = (e) => {
     setProductData({ ...productData, [e.target.name]: e.target.value });
@@ -45,13 +46,27 @@ const Dashboard = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (editingProductId) {
-      dispatch(updateProduct({ productId: editingProductId, productData }));
+      dispatch(updateProduct({ productId: editingProductId, updatedData: productData })).then((action) => {
+        if (action.meta.requestStatus === "fulfilled") {
+          alert("Product updated successfully!");
+        } else {
+          alert("Failed to update product.");
+        }
+      });
       setEditingProductId(null);
     } else {
-      dispatch(createProduct(productData));
+      dispatch(createProduct(productData)).then((action) => {
+        if (action.meta.requestStatus === "fulfilled") {
+          alert("Product created successfully!");
+        } else {
+          alert("Failed to create product.");
+        }
+      });
     }
     setProductData({ name: "", description: "", category: "", price: "", rating: "" });
   };
+  
+  
 
   const handleEdit = (product) => {
     setProductData({

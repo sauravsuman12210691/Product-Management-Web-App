@@ -60,15 +60,18 @@ export const updateProduct = createAsyncThunk(
       if (!authToken) return rejectWithValue("Authentication token is missing");
 
       const response = await axios.put(`${API_URL}/api/products/${productId}`, updatedData, {
-        headers: { "auth-token": authToken ,"Content-Type":"application/json"},
+        headers: { "auth-token": authToken, "Content-Type": "application/json" },
       });
 
-      return response.data.product;
+      console.log("Update Response:", response.data); // Debugging log
+
+      return response.data.product; // Ensure response contains { product: { _id, name, ... } }
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to update product");
     }
   }
 );
+
 
 // **Delete Product**
 export const deleteProduct = createAsyncThunk(
@@ -108,9 +111,15 @@ const productSlice = createSlice({
         state.items = action.payload;
       })
       .addCase(updateProduct.fulfilled, (state, action) => {
-        const index = state.items.findIndex((product) => product._id === action.payload._id);
-        if (index !== -1) state.items[index] = action.payload;
+        const updatedProduct = action.payload;
+        if (!updatedProduct || !updatedProduct._id) return; // Prevent undefined error
+      
+        const index = state.items.findIndex((item) => item._id === updatedProduct._id);
+        if (index !== -1) {
+          state.items[index] = updatedProduct; // Correctly update the product
+        }
       })
+      
       .addCase(deleteProduct.fulfilled, (state, action) => {
         state.items = state.items.filter((product) => product._id !== action.payload);
       });
