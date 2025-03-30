@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../store/slices/authSlice";
-import { useNavigate } from "react-router-dom"; // ✅ Import useNavigate
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // ✅ Initialize useNavigate
+  const navigate = useNavigate();
   const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
 
   const handleSubmit = (e) => {
@@ -15,10 +15,9 @@ const Login = () => {
     dispatch(loginUser({ email, password }));
   };
 
-  // ✅ Redirect to Dashboard if authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard"); // ✅ Redirect to Dashboard
+      navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);
 
@@ -52,6 +51,13 @@ const Login = () => {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Don't have an account?{" "}
+          <Link to="/" className="text-blue-500 hover:underline">
+            Register here
+          </Link>
+        </p>
       </div>
     </div>
   );
